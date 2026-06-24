@@ -1,9 +1,5 @@
-using ChaosFramework.Collections;
-using OpenTK.Graphics.OpenGL;
-using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.Common;
-using OpenTK.Mathematics;
 using System;
+using OpenTK.Graphics.OpenGL;
 using TkGlfw = OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace ChaosFramework.Platform.Glfw
@@ -12,79 +8,43 @@ namespace ChaosFramework.Platform.Glfw
         : PlatformContext
         , GlContext
     {
-        public class GlfwWindow : Window
-        {
-            public readonly NativeWindow window;
+        public event Action Terminate;
 
-            int w, h;
-            int Window.width => w;
-            int Window.height => h;
-
-            public GlfwWindow()
-            {
-                TkGlfw.Monitor* monitor = TkGlfw.GLFW.GetPrimaryMonitor();
-                TkGlfw.VideoMode* vm = TkGlfw.GLFW.GetVideoMode(monitor);
-                window = new NativeWindow(new NativeWindowSettings()
-                {
-                    Size = new Vector2i(w = vm->Width, h = vm->Height),
-                    Title = "Glfw window",
-                    WindowState = WindowState.Fullscreen,
-                    StartVisible = true,
-                    APIVersion = new Version(3, 3)
-                });
-                TkGlfw.GLFW.MakeContextCurrent(window.WindowPtr);
-                TkGlfw.GLFW.ShowWindow(window.WindowPtr);
-                TkGlfw.GLFW.SetInputMode(window.WindowPtr, TkGlfw.CursorStateAttribute.Cursor, TkGlfw.CursorModeValue.CursorDisabled);
-            }
-
-            void Window.Present()
-            {
-                TkGlfw.GLFW.MakeContextCurrent(window.WindowPtr);
-                TkGlfw.GLFW.SwapBuffers(window.WindowPtr);
-            }
-        }
+        bool terminated = false;
+        GlfwFullscreen fullscreen = null;
 
         Overhead PlatformContext.messageQueue => PerformOverhead;
+        GlContext PlatformContext.glContext => this;
 
         public GlfwPlatformContext()
         {
             TkGlfw.GLFW.Init();
         }
 
-        public event Action Terminate;
-        bool terminated = false;
-        AdvancedLinkedList<GlfwWindow> windows = new AdvancedLinkedList<GlfwWindow>();
+        public GlfwFullscreen CreateFullscreen(string title)
+            => fullscreen == null
+                ? fullscreen =  new GlfwFullscreen(title)
+                : throw new NotSupportedException("Only one monitor supported right now")
+                ;
 
-        GlContext PlatformContext.glContext => this;
+        Fullscreen PlatformContext.CreateFullscreen(string title)
+            => CreateFullscreen(title);
 
-        public GlfwWindow CreateWindow()
-        {
-            GlfwWindow window = new GlfwWindow();
-            windows.Add(window);
-            return window;
-        }
-
-        Window PlatformContext.CreateWindow()
-            => CreateWindow();
+        Window PlatformContext.CreateWindow(string title)
+            => throw new NotImplementedException();
 
         void GlContext.Init()
-        {
-            GL.LoadBindings(new TkGlfw.GLFWBindingsContext());
-        }
+            => GL.LoadBindings(new TkGlfw.GLFWBindingsContext());
 
         void PerformOverhead()
         {
             TkGlfw.GLFW.PollEvents();
-
-            foreach (GlfwWindow window in windows)
-                if (TkGlfw.GLFW.WindowShouldClose(window.window.WindowPtr))
-                    windows.RemoveCurrent();
-
-            if (windows.empty && !terminated)
-            {
-                terminated = true;
-                Terminate?.Invoke();
-            }
+            if (fullscreen != null)
+                if (TkGlfw.GLFW.WindowShouldClose(fullscreen.window.WindowPtr) && !terminated)
+                {
+                    terminated = true;
+                    Terminate?.Invoke();
+                }
         }
     }
 }
