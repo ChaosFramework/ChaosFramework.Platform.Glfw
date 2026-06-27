@@ -17,12 +17,12 @@ namespace ChaosFramework.Platform.Glfw
         public uint height => monitor.height;
         public Math.Vectors.Vector2i position => monitor.position;
 
-        public GlfwFullscreen(string title, GlfwMonitor monitor)
+        internal GlfwFullscreen(string title, GlfwMonitor monitor)
         {
             this.monitor = monitor ?? throw new ArgumentException(nameof(Monitor), $"Monitor must be a {nameof(GlfwMonitor)}.");
             window = new NativeWindow(new NativeWindowSettings()
             {
-                ClientSize = new Vector2i((int)monitor.width, (int)monitor.height),
+                CurrentMonitor = new MonitorHandle(new IntPtr(monitor.monitor)),
                 Title = this.title = title,
                 WindowState = WindowState.Fullscreen,
                 StartVisible = true,
