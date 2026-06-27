@@ -2,13 +2,19 @@ using TkGlfw = OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace ChaosFramework.Platform.Glfw
 {
-    unsafe class GlfwMonitor(TkGlfw.Monitor* monitor) : Monitor
+    public unsafe class GlfwMonitor : Monitor
     {
-        readonly TkGlfw.VideoMode vm = *TkGlfw.GLFW.GetVideoMode(monitor);
+        readonly TkGlfw.VideoMode vm;
 
-        uint Monitor.width => (uint)vm.Width;
-        uint Monitor.height => (uint)vm.Height;
-        Math.Vectors.Vector2i Monitor.position => 0; // only primary monitor supported right now
-        string Monitor.deviceName => null;
+        public uint width => (uint)vm.Width;
+        public uint height => (uint)vm.Height;
+        public Math.Vectors.Vector2i position => 0; // only primary monitor supported right now
+        public string deviceName { get; }
+
+        internal GlfwMonitor(TkGlfw.Monitor* monitor)
+        {
+            vm = *TkGlfw.GLFW.GetVideoMode(monitor);
+            deviceName =  TkGlfw.GLFW.GetMonitorName(monitor);
+        }
     }
 }

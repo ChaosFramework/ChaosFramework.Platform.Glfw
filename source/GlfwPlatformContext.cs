@@ -1,4 +1,6 @@
+using System.Linq;
 using System;
+using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 using TkGlfw = OpenTK.Windowing.GraphicsLibraryFramework;
 
@@ -21,14 +23,14 @@ namespace ChaosFramework.Platform.Glfw
             TkGlfw.GLFW.Init();
         }
 
-        public GlfwFullscreen CreateFullscreen(string title)
+        public GlfwFullscreen CreateFullscreen(string title, GlfwMonitor monitor)
             => fullscreen == null
-                ? fullscreen =  new GlfwFullscreen(title)
+                ? fullscreen =  new GlfwFullscreen(title, monitor)
                 : throw new NotSupportedException("Only one monitor supported right now")
                 ;
 
-        Fullscreen PlatformContext.CreateFullscreen(string title)
-            => CreateFullscreen(title);
+        Fullscreen PlatformContext.CreateFullscreen(string title, Monitor monitor)
+            => CreateFullscreen(title, monitor as GlfwMonitor);
 
         Window PlatformContext.CreateWindow(string title)
             => throw new NotImplementedException();
@@ -46,5 +48,18 @@ namespace ChaosFramework.Platform.Glfw
                     Terminate?.Invoke();
                 }
         }
+
+        public IEnumerable<GlfwMonitor> EnumerateMonitors()
+        {
+            TkGlfw.Monitor** tkMonitors = TkGlfw.GLFW.GetMonitorsRaw(out int numMonitors);
+            GlfwMonitor[] monitors = new GlfwMonitor[numMonitors];
+            for (int i = 0; i < numMonitors; ++i)
+                monitors[i] = new GlfwMonitor(tkMonitors[i]);
+
+            return monitors;
+        }
+
+        IEnumerable<Monitor> PlatformContext.EnumerateMonitors()
+            => EnumerateMonitors();
     }
 }
