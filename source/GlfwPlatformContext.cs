@@ -18,6 +18,19 @@ namespace ChaosFramework.Platform.Glfw
         Overhead PlatformContext.messageQueue => PerformOverhead;
         GlContext PlatformContext.glContext => this;
 
+        public GlfwMonitor PrimaryMonitor
+        {
+            get
+            {
+                TkGlfw.Monitor* primary = TkGlfw.GLFW.GetPrimaryMonitor();
+                return primary == null
+                    ? new GlfwMonitor(primary)
+                    : EnumerateMonitors().FirstOrDefault();
+            }
+        }
+
+        Monitor PlatformContext.PrimaryMonitor => PrimaryMonitor;
+
         public GlfwPlatformContext()
         {
             TkGlfw.GLFW.Init();
