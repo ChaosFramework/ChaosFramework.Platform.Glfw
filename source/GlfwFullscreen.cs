@@ -13,6 +13,8 @@ namespace ChaosFramework.Platform.Glfw
     {
         static float SelectX(KeyValuePair<Vector2i, Rgba8Image> v) => v.Key.x;
         static float SelectY(KeyValuePair<Vector2i, Rgba8Image> v) => v.Key.y;
+        static TkGlfw.Image CreateImage((Vector2i, RawDataHandle) layer)
+            => new TkGlfw.Image(layer.Item1.x, layer.Item1.y, (byte*)layer.Item2.firstElementAddress);
 
         public readonly NativeWindow window;
 
@@ -59,7 +61,7 @@ namespace ChaosFramework.Platform.Glfw
 
                 TkGlfw.GLFW.SetWindowIcon(
                     window.WindowPtr,
-                    handles.Select(img => new TkGlfw.Image(img.Item1.x, img.Item1.y, (byte*)img.Item2.firstElementAddress)).ToArray()
+                    handles.Select(CreateImage).ToArray()
                     );
             }
             finally
