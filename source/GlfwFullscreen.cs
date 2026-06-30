@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using ChaosFramework.Graphics.Imaging;
-using ChaosFramework.Math.Vectors;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using TkGlfw = OpenTK.Windowing.GraphicsLibraryFramework;
@@ -23,7 +20,7 @@ namespace ChaosFramework.Platform.Glfw
 
         public uint width => monitor.width;
         public uint height => monitor.height;
-        public Vector2i position => monitor.position;
+        public Math.Vectors.Vector2i position => monitor.position;
 
         internal GlfwFullscreen(string title, GlfwMonitor monitor)
         {
