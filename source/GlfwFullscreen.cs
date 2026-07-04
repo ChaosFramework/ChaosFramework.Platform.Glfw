@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using ChaosFramework.Graphics.Imaging;
 using ChaosFramework.Math.Vectors;
@@ -52,7 +53,8 @@ namespace ChaosFramework.Platform.Glfw
             switch(icon.format)
             {
                 case ApplicationIcon.IconFormat.ico:
-                    SetIcon(Icon.FromStream(icon.getStream()));
+                    using (Stream str = icon.getStream())
+                        SetIcon(Icon.FromStream(str));
                     break;
 
                 default:
