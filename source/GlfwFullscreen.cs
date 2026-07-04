@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using ChaosFramework.Graphics.Imaging;
 using ChaosFramework.Math.Vectors;
@@ -48,19 +47,8 @@ namespace ChaosFramework.Platform.Glfw
             TkGlfw.GLFW.SwapBuffers(window.WindowPtr);
         }
 
-        void PresentationContext.SetIcon(IEnumerable<Stream> sources)
-        {
-            foreach (Stream candidate in sources)
-                try
-                {
-                    SetIcon(Icon.FromStream(candidate));
-                    return;
-                }
-                catch
-                {
-                    // TODO: Let Icon.FromStream throw something that can be sensibly caught here
-                }
-        }
+        void PresentationContext.SetIcon(Icon icon)
+            => SetIcon(icon);
 
         public void SetIcon(Icon icon)
         {
