@@ -47,8 +47,18 @@ namespace ChaosFramework.Platform.Glfw
             TkGlfw.GLFW.SwapBuffers(window.WindowPtr);
         }
 
-        void PresentationContext.SetIcon(Icon icon)
-            => SetIcon(icon);
+        void PresentationContext.SetIcon(ApplicationIcon icon)
+        {
+            switch(icon.format)
+            {
+                case ApplicationIcon.IconFormat.ico:
+                    SetIcon(Icon.FromStream(icon.getStream()));
+                    break;
+
+                default:
+                    throw new ArgumentException("Unknown icon format", nameof(icon));
+            }
+        }
 
         public void SetIcon(Icon icon)
         {
