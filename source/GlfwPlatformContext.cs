@@ -12,6 +12,8 @@ namespace ChaosFramework.Platform.Glfw
     {
         public event Action Terminate;
 
+        public readonly GlfwErrorHandler errorHandler;
+
         bool terminated = false;
         GlfwFullscreen fullscreen = null;
 
@@ -34,6 +36,7 @@ namespace ChaosFramework.Platform.Glfw
         public GlfwPlatformContext()
         {
             TkGlfw.GLFW.Init();
+            errorHandler = new();
         }
 
         public GlfwFullscreen CreateFullscreen(string title, GlfwMonitor monitor)
