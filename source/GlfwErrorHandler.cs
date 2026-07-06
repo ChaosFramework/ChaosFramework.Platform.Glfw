@@ -7,6 +7,8 @@ namespace ChaosFramework.Platform.Glfw
 {
     public class GlfwErrorHandler
     {
+        public delegate bool HandleGlfwError(ErrorCode errorCode, string message);
+
         static bool DefaultHandleIconNotSupported(ErrorCode errorCode, string message)
         {
             // here's hoping that this error message never gets localized
@@ -21,8 +23,6 @@ namespace ChaosFramework.Platform.Glfw
         }
 
         public HandleGlfwError settingIconNotSupportedHandler = DefaultHandleIconNotSupported;
-
-        public delegate bool HandleGlfwError(ErrorCode errorCode, string message);
 
         readonly LinkedList<HandleGlfwError> handlers = [];
 
