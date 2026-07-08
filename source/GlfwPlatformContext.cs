@@ -12,6 +12,8 @@ namespace ChaosFramework.Platform.Glfw
     {
         public event Action Terminate;
 
+        public readonly GlfwErrorHandler errorHandler;
+
         readonly HashSet<GlfwMonitor> knownMonitors = [];
 
         // TODO: remove when closed
@@ -38,6 +40,7 @@ namespace ChaosFramework.Platform.Glfw
         public GlfwPlatformContext()
         {
             TkGlfw.GLFW.Init();
+            errorHandler = new();
         }
 
         public GlfwFullscreen CreateFullscreen(string title, GlfwMonitor monitor)
