@@ -82,5 +82,8 @@ namespace ChaosFramework.Platform.Glfw
                     handle.Item2?.Dispose();
             }
         }
+
+        public void Close()
+            => window.Close();
     }
 }
