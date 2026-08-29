@@ -14,8 +14,12 @@ namespace ChaosFramework.Platform.Glfw
 
         public readonly GlfwErrorHandler errorHandler;
 
+        readonly HashSet<GlfwMonitor> knownMonitors = [];
+
+        // TODO: remove when closed
+        readonly Dictionary<GlfwMonitor, GlfwFullscreen> fullscreen = [];
+
         bool terminated = false;
-        GlfwFullscreen fullscreen = null;
 
         Overhead PlatformContext.messageQueue => PerformOverhead;
         GlContext PlatformContext.glContext => this;
@@ -26,7 +30,7 @@ namespace ChaosFramework.Platform.Glfw
             {
                 TkGlfw.Monitor* primary = TkGlfw.GLFW.GetPrimaryMonitor();
                 return primary == null
-                    ? new GlfwMonitor(primary)
+                    ? GetOrCreateMonitor(primary)
                     : EnumerateMonitors().FirstOrDefault();
             }
         }
@@ -40,9 +44,9 @@ namespace ChaosFramework.Platform.Glfw
         }
 
         public GlfwFullscreen CreateFullscreen(string title, GlfwMonitor monitor)
-            => fullscreen == null
-                ? fullscreen =  new GlfwFullscreen(title, monitor)
-                : throw new NotSupportedException("Only one monitor supported right now")
+            => fullscreen.ContainsKey(monitor)
+                ? throw new InvalidOperationException("More than one fullscreen window per monitor doesn't make sense.")
+                : fullscreen[monitor] = new GlfwFullscreen(title, monitor)
                 ;
 
         Fullscreen PlatformContext.CreateFullscreen(string title, Monitor monitor)
@@ -54,11 +58,19 @@ namespace ChaosFramework.Platform.Glfw
         void GlContext.Init()
             => GL.LoadBindings(new TkGlfw.GLFWBindingsContext());
 
+        void GlContext.MakeCurrent(PresentationContext context)
+        {
+            if (context is GlfwFullscreen fs)
+                TkGlfw.GLFW.MakeContextCurrent(fs.window.WindowPtr);
+            else
+                throw new ArgumentException(nameof(context));
+        }
+
         void PerformOverhead()
         {
             TkGlfw.GLFW.PollEvents();
-            if (fullscreen != null)
-                if (TkGlfw.GLFW.WindowShouldClose(fullscreen.window.WindowPtr) && !terminated)
+            foreach(GlfwFullscreen fs in fullscreen.Values)
+                if (TkGlfw.GLFW.WindowShouldClose(fs.window.WindowPtr) && !terminated)
                 {
                     terminated = true;
                     Terminate?.Invoke();
@@ -70,12 +82,22 @@ namespace ChaosFramework.Platform.Glfw
             TkGlfw.Monitor** tkMonitors = TkGlfw.GLFW.GetMonitorsRaw(out int numMonitors);
             GlfwMonitor[] monitors = new GlfwMonitor[numMonitors];
             for (int i = 0; i < numMonitors; ++i)
-                monitors[i] = new GlfwMonitor(tkMonitors[i]);
+                monitors[i] = GetOrCreateMonitor(tkMonitors[i]);
 
             return monitors;
         }
 
         IEnumerable<Monitor> PlatformContext.EnumerateMonitors()
             => EnumerateMonitors();
+
+        GlfwMonitor GetOrCreateMonitor(TkGlfw.Monitor* monitor)
+        {
+            GlfwMonitor newMonitor = new(monitor);
+            if (knownMonitors.TryGetValue(newMonitor, out GlfwMonitor knownMonitor))
+                return knownMonitor;
+
+            knownMonitors.Add(newMonitor);
+            return newMonitor;
+        }
     }
 }
